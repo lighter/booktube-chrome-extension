@@ -3,19 +3,32 @@ const KOBO_URL = 'www.kobo.com';
 const PRODUCTION = true;
 const ISBN_REGEX = /\b(?:97[89])?\d{9}(\d|X)\b/g;
 const href = document.location.href;
+
+chrome.runtime.sendMessage({ message: 'getYoutubeKey' }, function(response) {
+  let KEY = response.getYoutubeKey;
+  main(KEY);
+});
+
 let bookType = '';
 
-if (href.includes(BOOKS_URL)) {
-  bookType = 'books';
-  getBooks();
+function main(youtubeKey) {
+
+  const KEY = youtubeKey
+
+  if (href.includes(BOOKS_URL)) {
+    bookType = 'books';
+    log(bookType, 'bookType');
+    getBooks(KEY);
+  }
+
+  if (href.includes(KOBO_URL)) {
+    bookType = 'kobo';
+    log(bookType, 'bookType');
+    getKobo(KEY);
+  }
 }
 
-if (href.includes(KOBO_URL)) {
-  bookType = 'kobo';
-  getKobo();
-}
-
-function getBooks() {
+function getBooks(KEY) {
   try {
     let isbn = '';
     let title = document.head.querySelector('[property=\'og:title\'][content]').
@@ -32,13 +45,13 @@ function getBooks() {
       isbn = matchISBN[0];
     }
 
-    searchYoutube(title);
+    searchYoutube(title, KEY);
   } catch (e) {
     console.log(e);
   }
 }
 
-function getKobo() {
+function getKobo(KEY) {
   try {
     let isbn = '';
     let title = '';
@@ -50,14 +63,14 @@ function getKobo() {
     bookInfo = JSON.parse(bookInfo);
     let googleBook = JSON.parse(
         bookInfo.googleBook.replace(/(\r\n|\n|\r)/gm, ''));
-    let isbn = googleBook?.workExample?.isbn;
+    isbn = googleBook?.workExample?.isbn;
 
-    let title = googleBook?.name;
+    title = googleBook?.name;
     title = title.split(/\s+/)[0];
     title = title.split('（')[0];
     title = title.split('：')[0];
 
-    searchYoutube(title);
+    searchYoutube(title, KEY);
   } catch (e) {
     console.log(e);
   }
@@ -90,13 +103,12 @@ function createTable(data) {
   return table;
 }
 
-function searchYoutube(title) {
+function searchYoutube(title, KEY) {
   if (PRODUCTION) {
     let items = null;
 
     // 建立 XMLHttpRequest 物件
     let xhr = new XMLHttpRequest();
-    let KEY = '';
     let LANG = 'zh-Hant';
     let TYPE = 'video';
     let REGION_CODE = 'TW';
@@ -156,4 +168,10 @@ function tableWidth(bookType) {
   }
 
   return width;
+}
+
+function log(value, key) {
+  if (!PRODUCTION) {
+    console.log(`${key}: ${value}`);
+  }
 }

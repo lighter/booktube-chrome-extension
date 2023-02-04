@@ -11,7 +11,13 @@
 還需要自行申請 Youtube API key。詳情申請方式請參考 [Youtube API](https://developers.google.com/youtube/v3/getting-started?hl=zh-tw)
 
 ## Todo
-- [ ] youtube 設定 api key 頁面
+- [x] youtube 設定 api key 頁面
+- [ ] youtube 設定 api key 頁面調整
+- [ ] 搜尋結果暫存，節省 api 次數
 - [ ] 搜尋結果分頁
 - [ ] 搜尋結果畫面優化
 - [ ] 程式碼優化
+
+## License
+
+MIT
