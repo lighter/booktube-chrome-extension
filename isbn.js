@@ -1,37 +1,66 @@
 const BOOKS_URL = 'www.books.com.tw';
 const KOBO_URL = 'www.kobo.com';
+const PRODUCTION = true;
 const ISBN_REGEX = /\b(?:97[89])?\d{9}(\d|X)\b/g;
 const href = document.location.href;
-let type = '';
+let bookType = '';
 
 if (href.includes(BOOKS_URL)) {
-  type = 'books';
+  bookType = 'books';
+  getBooks();
 }
 
 if (href.includes(KOBO_URL)) {
-  type = 'kobo';
+  bookType = 'kobo';
+  getKobo();
 }
 
-if (type === 'books') {
-  let isbn = '';
-  let title = document.head.querySelector('[property=\'og:title\'][content]').
-      content.
-      split(/\s+/)[0];
-  title = title.split('（')[0];
+function getBooks() {
+  try {
+    let isbn = '';
+    let title = document.head.querySelector('[property=\'og:title\'][content]').
+        content.
+        split(/\s+/)[0];
+    title = title.split('（')[0];
+    title = title.split('：')[0];
 
-  let description = document.head.querySelector(
-      '[property=\'og:description\'][content]').content;
-  let macthISBN = description.match(ISBN_REGEX);
+    let description = document.head.querySelector(
+        '[property=\'og:description\'][content]').content;
+    let matchISBN = description.match(ISBN_REGEX);
 
-  if (macthISBN !== null) {
-    isbn = macthISBN[0];
+    if (matchISBN !== null) {
+      isbn = matchISBN[0];
+    }
+
+    searchYoutube(title);
+  } catch (e) {
+    console.log(e);
   }
+}
 
-  console.log(title);
-  console.log(isbn);
+function getKobo() {
+  try {
+    let isbn = '';
+    let title = '';
 
-  searchYoutube(title);
-  // createFloatingWindow(searchData);
+    let bookInfo = document.getElementById('ratings-widget-details-wrapper').
+        getAttribute('data-kobo-gizmo-config');
+    bookInfo = bookInfo.replace(/(\r\n|\n|\r)/gm, '');
+
+    bookInfo = JSON.parse(bookInfo);
+    let googleBook = JSON.parse(
+        bookInfo.googleBook.replace(/(\r\n|\n|\r)/gm, ''));
+    let isbn = googleBook?.workExample?.isbn;
+
+    let title = googleBook?.name;
+    title = title.split(/\s+/)[0];
+    title = title.split('（')[0];
+    title = title.split('：')[0];
+
+    searchYoutube(title);
+  } catch (e) {
+    console.log(e);
+  }
 }
 
 function createFloatingWindow(data) {
@@ -39,50 +68,15 @@ function createFloatingWindow(data) {
   div.style.position = 'fixed';
   div.style.top = '250px';
   div.style.left = '10px';
-  // div.style.backgroundColor = 'red';
-  // div.innerHTML = 'Hello, World!';
   div.innerHTML = createTable(data);
   document.body.appendChild(div);
 }
 
 function createTable(data) {
-  // data = [
-  //   {
-  //     "kind": "youtube#searchResult",
-  //     "etag": "AT4eHdCMN08Lt8RnfvHoY5UoumM",
-  //     "id": {
-  //       "kind": "youtube#video",
-  //       "videoId": "NPda4nWkXVw"
-  //     },
-  //     "snippet": {
-  //       "publishedAt": "2022-02-08T12:00:14Z",
-  //       "channelId": "UCQbyKhmFHIRptrAJMSwS-dw",
-  //       "title": "心理諮詢有沒有用？ 羅伯狄保德寫現實童話 《蛤蟆先生看心理師》Robert de Board｜NeKo嗚喵．說書",
-  //       "description": "真心覺得早一點看到這本書~人生一定會有很大的不一樣!! 請用訂閱代替掌聲▷https://goo.gl/4cGq4T 或者在上方按個喜歡❤，我們下 ...",
-  //       "thumbnails": {
-  //         "default": {
-  //           "url": "https://i.ytimg.com/vi/NPda4nWkXVw/default.jpg",
-  //           "width": 120,
-  //           "height": 90
-  //         },
-  //         "medium": {
-  //           "url": "https://i.ytimg.com/vi/NPda4nWkXVw/mqdefault.jpg",
-  //           "width": 320,
-  //           "height": 180
-  //         },
-  //         "high": {
-  //           "url": "https://i.ytimg.com/vi/NPda4nWkXVw/hqdefault.jpg",
-  //           "width": 480,
-  //           "height": 360
-  //         }
-  //       },
-  //       "channelTitle": "NeKo嗚喵",
-  //       "liveBroadcastContent": "none",
-  //       "publishTime": "2022-02-08T12:00:14Z"
-  //     }
-  //   }];
-    const table = `
-    <table style="width: 350px; border: 1px solid black;">
+  const width = tableWidth(bookType);
+
+  const table = `
+    <table style="width: ${width}; border: 1px solid black;">
       <tbody>
       ${data.map(row => `
         <tr>
@@ -93,47 +87,73 @@ function createTable(data) {
       </tbody>
     </table>
 `;
-    return table;
+  return table;
 }
 
 function searchYoutube(title) {
-  let items = null;
+  if (PRODUCTION) {
+    let items = null;
 
-  // 建立 XMLHttpRequest 物件
-  let xhr = new XMLHttpRequest();
-  let KEY = '';
-  let LANG = 'zh-Hant';
-  let TYPE = 'video';
-  let REGION_CODE = 'TW';
-  let Q = title;
+    // 建立 XMLHttpRequest 物件
+    let xhr = new XMLHttpRequest();
+    let KEY = '';
+    let LANG = 'zh-Hant';
+    let TYPE = 'video';
+    let REGION_CODE = 'TW';
+    let Q = title;
 
-  // 設定要連接的 API 網址
-  let url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&q=' + Q +
-      '&key=' + KEY + '&relevanceLanguage=' + LANG + '&type=' + TYPE +
-      '&regionCode=' + REGION_CODE;
+    // 設定要連接的 API 網址
+    let url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&q=' +
+        Q +
+        '&key=' + KEY + '&relevanceLanguage=' + LANG + '&type=' + TYPE +
+        '&regionCode=' + REGION_CODE;
 
-  // 設定 request 的方法和網址
-  xhr.open('GET', url, true);
+    // 設定 request 的方法和網址
+    xhr.open('GET', url, true);
 
-  // 設定 request 的回應函數
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState === 4 && xhr.status === 200) {
-      // 取得 API 的回應，並轉換成 JSON 格式
-      let response = JSON.parse(xhr.responseText);
+    // 設定 request 的回應函數
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        // 取得 API 的回應，並轉換成 JSON 格式
+        let response = JSON.parse(xhr.responseText);
 
-      // 取得影片數量
-      let videoCount = response.pageInfo.totalResults;
-      console.log('video count:' + videoCount);
+        // 取得影片數量
+        let videoCount = response.pageInfo.totalResults;
 
-      if (videoCount > 0) {
-        items = response.items;
+        if (videoCount > 0) {
+          items = response.items;
+        }
+
+        createFloatingWindow(items);
       }
+    };
 
-      createFloatingWindow(items);
+    // 送出 request
+    xhr.send();
+  } else {
+    let items = null;
+    let response = testData;
+
+    let videoCount = response.pageInfo.totalResults;
+
+    if (videoCount > 0) {
+      items = response.items;
     }
-  };
 
-  // 送出 request
-  xhr.send();
+    createFloatingWindow(items);
+  }
 }
 
+function tableWidth(bookType) {
+  let width = '350px';
+  switch (bookType) {
+    case 'books':
+      width = '350px';
+      break;
+    case 'kobo':
+      width = '300px';
+      break;
+  }
+
+  return width;
+}
