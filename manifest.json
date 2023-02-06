@@ -4,8 +4,8 @@
   "version": "1.0",
   "content_scripts": [
     {
-      "matches": ["https://www.books.com.tw/*", "https://www.kobo.com/*"],
-      "js": [ "content_scripts/youtube-test.js", "content_scripts/isbn.js"]
+      "matches": ["https://www.books.com.tw/products/*", "https://www.kobo.com/*"],
+      "js": [ "content_scripts/youtube-test.js", "content_scripts/content_scripts.js"]
     }
   ],
   "background": {
