@@ -12,6 +12,7 @@
 
 ## Todo
 - [x] youtube 設定 api key 頁面
+- [x] 表格位置大小依據網頁位置調整
 - [ ] youtube 設定 api key 頁面調整
 - [ ] 搜尋結果暫存，節省 api 次數
 - [ ] 搜尋結果分頁
