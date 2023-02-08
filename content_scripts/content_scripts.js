@@ -25,8 +25,10 @@ class ContentScripts {
       if (this.bookType !== '') {
         const {isbn: isbn, bookTitle: bookTitle} = new BookInfo(this.bookType);
 
-        const youtube = new SearchYoutube(this.bookType, this.key);
-        youtube.ytSearchResult(bookTitle);
+        const youtube = new SearchYoutube(this.key);
+        youtube.ytSearchResult(bookTitle).then((data) => {
+          new CreateYoutubeTable(data, this.bookType);
+        });
       }
     } else {
       console.log('Please check your Youtube API Key');
@@ -98,65 +100,76 @@ class BookInfo {
 }
 
 class SearchYoutube {
-  constructor(bookType, youtubeKey) {
+  constructor(youtubeKey) {
     this.production = true;
-    this.bookType = bookType;
     this.youtubeKey = youtubeKey;
     this.nextPageToken = '';
     this.prevPageToken = '';
   }
 
   ytSearchResult(title) {
-    let items = null;
+    return new Promise((resolve) => {
+      let items = null;
 
-    if (this.production) {
-      // 建立 XMLHttpRequest 物件
-      let xhr = new XMLHttpRequest();
-      const LANG = 'zh-Hant';
-      const TYPE = 'video';
-      const REGION_CODE = 'TW';
-      const Q = title;
+      if (this.production) {
+        // 建立 XMLHttpRequest 物件
+        let xhr = new XMLHttpRequest();
+        const LANG = 'zh-Hant';
+        const TYPE = 'video';
+        const REGION_CODE = 'TW';
+        const Q = title;
 
-      // 設定要連接的 API 網址
-      let url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&q=' +
-          Q +
-          '&key=' + this.youtubeKey + '&relevanceLanguage=' + LANG + '&type=' +
-          TYPE +
-          '&regionCode=' + REGION_CODE;
+        // 設定要連接的 API 網址
+        let url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&q=' +
+            Q +
+            '&key=' + this.youtubeKey + '&relevanceLanguage=' + LANG +
+            '&type=' +
+            TYPE +
+            '&regionCode=' + REGION_CODE;
 
-      // 設定 request 的方法和網址
-      xhr.open('GET', url, true);
+        // 設定 request 的方法和網址
+        xhr.open('GET', url, true);
 
-      // 設定 request 的回應函數
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          // 取得 API 的回應，並轉換成 JSON 格式
-          let response = JSON.parse(xhr.responseText);
+        // 設定 request 的回應函數
+        xhr.onreadystatechange = () => {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            // 取得 API 的回應，並轉換成 JSON 格式
+            let response = JSON.parse(xhr.responseText);
 
-          // 取得影片數量
-          let videoCount = response.pageInfo.totalResults;
+            // 取得影片數量
+            let videoCount = response.pageInfo.totalResults;
 
-          if (videoCount > 0) {
-            items = response.items;
+            if (videoCount > 0) {
+              items = response.items;
+            }
+
+            resolve(items);
           }
+        };
 
-          this.createFloatingWindow(items);
+        // 送出 request
+        xhr.send();
+      } else {
+        let response = testData;
+
+        let videoCount = response.pageInfo.totalResults;
+
+        if (videoCount > 0) {
+          items = response.items;
         }
-      };
 
-      // 送出 request
-      xhr.send();
-    } else {
-      let response = testData;
-
-      let videoCount = response.pageInfo.totalResults;
-
-      if (videoCount > 0) {
-        items = response.items;
+        resolve(items)
       }
+    });
+  }
+}
 
-      this.createFloatingWindow(items);
-    }
+class CreateYoutubeTable {
+  constructor(items, bookType) {
+    this.items = items;
+    this.bookType = bookType
+
+    this.createFloatingWindow(this.items)
   }
 
   createFloatingWindow(data) {
