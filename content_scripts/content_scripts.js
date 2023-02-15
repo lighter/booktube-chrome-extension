@@ -1,8 +1,3 @@
-chrome.runtime.sendMessage({message: 'getYoutubeKey'}, function(response) {
-  const cs = new ContentScripts(response.getYoutubeKey);
-  cs.run();
-});
-
 class ContentScripts {
   constructor(key) {
     this.booksUrl = 'www.books.com.tw';
@@ -10,6 +5,10 @@ class ContentScripts {
     this.href = document.location.href;
     this.key = key;
     this.bookType = ''
+
+    this.bookTitle = '';
+    this.isbn = '';
+    this.youtube = null;
   }
 
   run() {
@@ -24,15 +23,42 @@ class ContentScripts {
 
       if (this.bookType !== '') {
         const {isbn: isbn, bookTitle: bookTitle} = new BookInfo(this.bookType);
+        this.bookTitle = bookTitle;
+        this.isbn = isbn;
 
-        const youtube = new SearchYoutube(this.key);
-        youtube.ytSearchResult(bookTitle).then((data) => {
-          new CreateYoutubeTable(data, this.bookType);
-        });
+        if (this.bookTitle !== '' && this.isbn !== '') {
+          this.youtube = new SearchYoutube(this.key);
+          this.youtube.ytSearchResult(this.bookTitle).then((data) => {
+            new CreateYoutubeTable(data, this.bookType, this.bookTitle, this.isbn);
+            this.bindPaginationClick();
+          });
+        }
       }
     } else {
       console.log('Please check your Youtube API Key');
     }
+  }
+
+  bindPaginationClick() {
+    let clickGoPage = (e) => {
+      this.goToPage(e.target.dataset.pageToken);
+    };
+
+    const bindClickClasses = ['next-page', 'prev-page'];
+    for (let i = 0; i < bindClickClasses.length; i++) {
+      let pageToken = document.getElementsByClassName(bindClickClasses[i]);
+      if (pageToken.length > 0) {
+        pageToken[0].removeEventListener('click', clickGoPage);
+        pageToken[0].addEventListener('click', clickGoPage);
+      }
+    }
+  }
+
+  goToPage(pageToken) {
+    this.youtube.ytSearchResult(this.bookTitle, pageToken).then((data) => {
+      new CreateYoutubeTable(data, this.bookType);
+      this.bindPaginationClick();
+    })
   }
 }
 
@@ -103,11 +129,9 @@ class SearchYoutube {
   constructor(youtubeKey) {
     this.production = true;
     this.youtubeKey = youtubeKey;
-    this.nextPageToken = '';
-    this.prevPageToken = '';
   }
 
-  ytSearchResult(title) {
+  ytSearchResult(title, pageToken = '') {
     return new Promise((resolve) => {
       let items = null;
 
@@ -118,6 +142,7 @@ class SearchYoutube {
         const TYPE = 'video';
         const REGION_CODE = 'TW';
         const Q = title;
+        const pageTokenStr = pageToken ? '&pageToken=' + pageToken : '';
 
         // 設定要連接的 API 網址
         let url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&q=' +
@@ -125,7 +150,7 @@ class SearchYoutube {
             '&key=' + this.youtubeKey + '&relevanceLanguage=' + LANG +
             '&type=' +
             TYPE +
-            '&regionCode=' + REGION_CODE;
+            '&regionCode=' + REGION_CODE + pageTokenStr;
 
         // 設定 request 的方法和網址
         xhr.open('GET', url, true);
@@ -140,7 +165,7 @@ class SearchYoutube {
             let videoCount = response.pageInfo.totalResults;
 
             if (videoCount > 0) {
-              items = response.items;
+              items = response;
             }
 
             resolve(items);
@@ -155,7 +180,7 @@ class SearchYoutube {
         let videoCount = response.pageInfo.totalResults;
 
         if (videoCount > 0) {
-          items = response.items;
+          items = response;
         }
 
         resolve(items)
@@ -165,22 +190,31 @@ class SearchYoutube {
 }
 
 class CreateYoutubeTable {
-  constructor(items, bookType) {
-    this.items = items;
-    this.bookType = bookType
+  constructor(data, bookType, bookTitle, isbn) {
+    this.bookType = bookType;
 
-    this.createFloatingWindow(this.items)
+    this.clearYoutubeSearchResult();
+    this.createFloatingWindow(data, bookTitle, isbn);
   }
 
-  createFloatingWindow(data) {
+  clearYoutubeSearchResult() {
+    const div = document.querySelector('.youtube-search-result');
+    if (div) {
+      div.remove();
+    }
+  }
+
+  createFloatingWindow(data, bookTitle, isbn) {
     const {top: top, tableWidth: tableWidth} = this.getTableBounding();
     const div = document.createElement('div');
+    const title = `<p style="font-size: 20px; color: black;">${bookTitle}, ${isbn}</p>`;
     div.className = 'youtube-search-result';
     div.style.position = 'fixed';
+    div.style.background = 'white';
     div.style.top = `${top}px`;
     div.style.zIndex = '99999';
     div.style.left = '5px';
-    div.innerHTML = this.createTable(data, `${tableWidth}px`);
+    div.innerHTML = title + this.createTable(data, `${tableWidth}px`);
     document.body.appendChild(div);
   }
 
@@ -212,18 +246,48 @@ class CreateYoutubeTable {
   }
 
   createTable(data, width) {
+    let nextPage = '';
+    let prevPage = '';
+
+    if (data?.nextPageToken) {
+      nextPage = `<a class='next-page' 
+                     href='javascript:void(0);' 
+                     data-page-token='${data.nextPageToken}'>下一頁</a>`
+    }
+
+    if (data?.prevPageToken) {
+      prevPage = `<a class='prev-page' 
+                     href='javascript:void(0);' 
+                     data-page-token='${data.prevPageToken}'>上一頁</a>`
+    }
+
     const table = `
     <table style="width: ${width}; border: 1px solid black;">
       <tbody>
-      ${data.map(row => `
+      ${data.items.map(row => `
         <tr>
             <td style="border: 1px solid black; padding: 5px;"><img src="${row.snippet.thumbnails.default.url}"></td>
             <td style="border: 1px solid black; padding: 5px;"><a href="https://www.youtube.com/watch?v=${row.id.videoId}">${row.snippet.title}</a></td>
         </tr>
     `).join('')}
       </tbody>
+      <tfoot>
+        <tr style="text-align: right;"> 
+            <td colspan="2">
+              ${prevPage} | ${nextPage}
+            </td>  
+        </tr>      
+      </tfoot>
     </table>
 `;
     return table;
   }
 }
+
+
+(() => {
+  chrome.runtime.sendMessage({message: 'getYoutubeKey'}, function(response) {
+    const cs = new ContentScripts(response.getYoutubeKey);
+    cs.run();
+  });
+})();
