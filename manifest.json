@@ -5,7 +5,9 @@
   "content_scripts": [
     {
       "matches": ["https://www.books.com.tw/products/*", "https://www.kobo.com/*"],
-      "js": [ "content_scripts/youtube-test.js", "content_scripts/content_scripts.js"]
+      "js": [ "content_scripts/youtube-test.js", "content_scripts/content_scripts.js"],
+      "css" : ["content_scripts/content_scripts.css"],
+      "run_at": "document_end"
     }
   ],
   "background": {

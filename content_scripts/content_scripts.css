@@ -1,0 +1,44 @@
+.table-title {
+    font-size: 20px;
+    color: black;
+    text-align: center;
+}
+
+/*table*/
+.yt-table {
+    border: 1px solid black;
+}
+.yt-table tbody td {
+    border: 1px solid black;
+    padding: 5px;
+}
+.yt-image, .yt-iframe, .play-yt, .stop-yt, .material-symbols-outlined {
+    display: none !important;
+}
+.material-symbols-outlined.active {
+    display: block !important;
+}
+.yt-image.active {
+    display: block !important;
+}
+.yt-iframe.active {
+    display: block !important;
+}
+.play-yt:hover, .stop-yt:hover {
+    cursor: pointer;
+}
+.play-yt.active {
+    display: block !important;
+}
+.stop-yt.active {
+    display: block !important;
+}
+
+/*yotube info*/
+.yt-info p {
+    padding-top: 5px;
+}
+
+.yt-info p a {
+    color: blue;
+}

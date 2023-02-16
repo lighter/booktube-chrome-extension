@@ -31,6 +31,7 @@ class ContentScripts {
           this.youtube.ytSearchResult(this.bookTitle).then((data) => {
             new CreateYoutubeTable(data, this.bookType, this.bookTitle, this.isbn);
             this.bindPaginationClick();
+            this.bindPlayClick();
           });
         }
       }
@@ -54,10 +55,49 @@ class ContentScripts {
     }
   }
 
+  bindPlayClick() {
+    const ytPlayer = (e) => {
+      let ytId = e.target.dataset.videoId;
+
+      document.getElementsByClassName('yt-image ' + ytId)[0].classList.remove('active');
+      document.getElementsByClassName('play-yt ' + ytId)[0].classList.remove('active');
+      document.getElementsByClassName('yt-iframe ' + ytId)[0].classList.add('active');
+      document.getElementsByClassName('stop-yt ' + ytId)[0].classList.add('active');
+    }
+
+    const ytStop = (e) => {
+      let ytId = e.target.dataset.videoId;
+      const src = document.getElementsByClassName('yt-iframe ' + ytId)[0].src
+      document.getElementsByClassName('yt-iframe ' + ytId)[0].src = src;
+
+      document.getElementsByClassName('yt-image ' + ytId)[0].classList.add('active');
+      document.getElementsByClassName('play-yt ' + ytId)[0].classList.add('active');
+      document.getElementsByClassName('yt-iframe ' + ytId)[0].classList.remove('active');
+      document.getElementsByClassName('stop-yt ' + ytId)[0].classList.remove('active');
+    }
+
+    const playYT = document.getElementsByClassName('play-yt');
+    if (playYT.length > 0) {
+      for (let i = 0; i < playYT.length; i++) {
+        playYT[i].removeEventListener('click', ytPlayer);
+        playYT[i].addEventListener('click', ytPlayer);
+      }
+    }
+
+    const stopYT = document.getElementsByClassName('stop-yt');
+    if (stopYT.length > 0) {
+      for (let i = 0; i < stopYT.length; i++) {
+        stopYT[i].removeEventListener('click', ytStop);
+        stopYT[i].addEventListener('click', ytStop);
+      }
+    }
+  }
+
   goToPage(pageToken) {
     this.youtube.ytSearchResult(this.bookTitle, pageToken).then((data) => {
-      new CreateYoutubeTable(data, this.bookType);
+      new CreateYoutubeTable(data, this.bookType, this.bookTitle, this.isbn);
       this.bindPaginationClick();
+      this.bindPlayClick();
     })
   }
 }
@@ -207,7 +247,7 @@ class CreateYoutubeTable {
   createFloatingWindow(data, bookTitle, isbn) {
     const {top: top, tableWidth: tableWidth} = this.getTableBounding();
     const div = document.createElement('div');
-    const title = `<p style="font-size: 20px; color: black;">${bookTitle}, ${isbn}</p>`;
+    const title = `<p class="table-title">${bookTitle}, ${isbn}</p>`;
     div.className = 'youtube-search-result';
     div.style.position = 'fixed';
     div.style.background = 'white';
@@ -246,35 +286,58 @@ class CreateYoutubeTable {
   }
 
   createTable(data, width) {
-    let nextPage = '';
-    let prevPage = '';
+    let pageLink = '';
+
+    if (data?.prevPageToken) {
+      pageLink += `<a class='prev-page' 
+                     href='javascript:void(0);' 
+                     data-page-token='${data.prevPageToken}'>上一頁</a> | `
+    }
 
     if (data?.nextPageToken) {
-      nextPage = `<a class='next-page' 
+      pageLink += `<a class='next-page' 
                      href='javascript:void(0);' 
                      data-page-token='${data.nextPageToken}'>下一頁</a>`
     }
 
-    if (data?.prevPageToken) {
-      prevPage = `<a class='prev-page' 
-                     href='javascript:void(0);' 
-                     data-page-token='${data.prevPageToken}'>上一頁</a>`
-    }
-
     const table = `
-    <table style="width: ${width}; border: 1px solid black;">
+    <style>
+    .yt-table {
+        width: ${width};
+    }
+    </style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
+    <table class='yt-table'>
       <tbody>
       ${data.items.map(row => `
         <tr>
-            <td style="border: 1px solid black; padding: 5px;"><img src="${row.snippet.thumbnails.default.url}"></td>
-            <td style="border: 1px solid black; padding: 5px;"><a href="https://www.youtube.com/watch?v=${row.id.videoId}">${row.snippet.title}</a></td>
+            <td>
+                <img class="yt-image ${row.id.videoId} active" src="${row.snippet.thumbnails.default.url}">
+                <iframe class="yt-iframe ${row.id.videoId}" width="120" height="90"
+                        src="https://www.youtube.com/embed/${row.id.videoId}?enablejsapi=1&autoplay=0&mute=0&controls=1&modestbranding=1&showinfo=0"
+                        ></iframe>
+            </td>
+            <td class="yt-info">
+                <p>${row.snippet.channelTitle} | ${row.snippet.publishedAt}</p>
+                <p><a href="https://www.youtube.com/watch?v=${row.id.videoId}">${row.snippet.title}</a></p>
+            </td>
+            <td>
+                <p class="play-yt ${row.id.videoId} material-symbols-outlined active" 
+                   data-video-id="${row.id.videoId}">
+                    play_circle
+                </p>
+                <p class="stop-yt ${row.id.videoId} material-symbols-outlined" 
+                   data-video-id="${row.id.videoId}">
+                   cancel
+                 </p>
+            </td>
         </tr>
     `).join('')}
       </tbody>
       <tfoot>
         <tr style="text-align: right;"> 
-            <td colspan="2">
-              ${prevPage} | ${nextPage}
+            <td colspan="3">
+              ${pageLink}
             </td>  
         </tr>      
       </tfoot>
