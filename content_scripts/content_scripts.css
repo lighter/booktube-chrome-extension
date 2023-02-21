@@ -1,15 +1,49 @@
+.yt-container {
+    position: fixed;
+    transition: left 0.5s;
+    display: grid;
+}
+.youtube-search-result {
+    overflow: scroll;
+    border: 1px dashed #EAEAEA;
+}
+
+.menu-div {
+    width: fit-content;
+    height: fit-content;
+    border: 1px dashed #5D6644;
+}
+
+.menu-text {
+    font-size: 20px;
+    width: 20px;
+    padding: 5px;
+    display: none;
+}
+
+.menu-text.active {
+    display: block !important;
+}
+
 .table-title {
     font-size: 20px;
     color: black;
-    text-align: center;
 }
 
 /*table*/
-.yt-table {
-    border: 1px solid black;
+.yt-table tbody tr:nth-child(even) {
+    background-color: #F4FFD6;
 }
+
+.yt-table tbody tr:nth-child(odd) {
+    background-color: #D1E69A;
+}
+.yt-table tfoot td {
+    font-size: 15px;
+    padding: 5px 5px 5px 0;
+}
+
 .yt-table tbody td {
-    border: 1px solid black;
     padding: 5px;
 }
 .yt-image, .yt-iframe, .play-yt, .stop-yt, .material-symbols-outlined {

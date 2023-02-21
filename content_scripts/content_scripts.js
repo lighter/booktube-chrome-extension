@@ -32,6 +32,7 @@ class ContentScripts {
             new CreateYoutubeTable(data, this.bookType, this.bookTitle, this.isbn);
             this.bindPaginationClick();
             this.bindPlayClick();
+            this.bindMenuClick();
           });
         }
       }
@@ -93,11 +94,40 @@ class ContentScripts {
     }
   }
 
+
+  bindMenuClick() {
+    const menuClick = (e) => {
+      e.target.classList.remove('active');
+
+      if (e.target.classList.contains('close')) {
+        let ytTableWidth = parseInt(
+            getComputedStyle(document.getElementsByClassName('yt-table')[0])
+              .getPropertyValue('width'), 10
+        );
+
+        document.getElementsByClassName('menu-text open')[0].classList.add('active');
+        document.getElementsByClassName('yt-container')[0].style.left = '-' + (ytTableWidth + 5) + 'px';
+      } else {
+        document.getElementsByClassName('menu-text close')[0].classList.add('active');
+        document.getElementsByClassName('yt-container')[0].style.left = '5px';
+      }
+    }
+
+    let menu = document.getElementsByClassName('menu-text');
+    if (menu.length > 0) {
+      for (let i = 0; i < menu.length; i++) {
+        menu[i].removeEventListener('click', menuClick);
+        menu[i].addEventListener('click', menuClick);
+      }
+    }
+  }
+
   goToPage(pageToken) {
     this.youtube.ytSearchResult(this.bookTitle, pageToken).then((data) => {
       new CreateYoutubeTable(data, this.bookType, this.bookTitle, this.isbn);
       this.bindPaginationClick();
       this.bindPlayClick();
+      this.bindMenuClick();
     })
   }
 }
@@ -238,24 +268,38 @@ class CreateYoutubeTable {
   }
 
   clearYoutubeSearchResult() {
-    const div = document.querySelector('.youtube-search-result');
+    const div = document.querySelector('.yt-container');
     if (div) {
       div.remove();
     }
   }
 
-  createFloatingWindow(data, bookTitle, isbn) {
+  createFloatingWindow(data, bookTitle, isbn, openStatus = true) {
     const {top: top, tableWidth: tableWidth} = this.getTableBounding();
-    const div = document.createElement('div');
+    const yotubeDiv = document.createElement('div');
     const title = `<p class="table-title">${bookTitle}, ${isbn}</p>`;
-    div.className = 'youtube-search-result';
-    div.style.position = 'fixed';
-    div.style.background = 'white';
-    div.style.top = `${top}px`;
-    div.style.zIndex = '99999';
-    div.style.left = '5px';
-    div.innerHTML = title + this.createTable(data, `${tableWidth}px`);
-    document.body.appendChild(div);
+    yotubeDiv.className = 'youtube-search-result';
+    yotubeDiv.innerHTML = title + this.createTable(data, `${tableWidth}px`);
+
+    const container = document.createElement('div');
+    container.innerHTML = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />'
+    container.className = 'yt-container';
+    container.style.top = `${top}px`;
+    container.style.zIndex = '99999';
+    container.style.left = openStatus ? '5px' : `-${tableWidth}px`;
+    container.style.gridTemplateColumns = `${tableWidth}px 40px`;
+    container.style.height = window.innerHeight - top - 10 + 'px';
+
+    const openBtn = document.createElement('div');
+    openBtn.className = 'menu-div menu';
+    const openTag = openStatus ? '' : 'active';
+    const closeTag = openStatus ? 'active' : '';
+    openBtn.innerHTML = `<p class="menu-text close ${closeTag}">關閉</p><p class="menu-text open ${openTag}">開啟</p>`;
+
+    container.appendChild(yotubeDiv);
+    container.appendChild(openBtn);
+
+    document.body.appendChild(container);
   }
 
   getTableBounding() {
@@ -306,7 +350,6 @@ class CreateYoutubeTable {
         width: ${width};
     }
     </style>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
     <table class='yt-table'>
       <tbody>
       ${data.items.map(row => `
