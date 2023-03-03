@@ -4,7 +4,6 @@
     display: grid;
 }
 .youtube-search-result {
-    overflow: scroll;
     border: 1px dashed #EAEAEA;
 }
 
@@ -26,6 +25,7 @@
 }
 
 .table-title {
+    background-color: white;
     font-size: 20px;
     color: black;
 }
@@ -41,6 +41,8 @@
 .yt-table tfoot td {
     font-size: 15px;
     padding: 5px 5px 5px 0;
+    background-color: white;
+    border: 1px dashed #EAEAEA;
 }
 
 .yt-table tbody td {

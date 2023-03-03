@@ -288,7 +288,6 @@ class CreateYoutubeTable {
     container.style.zIndex = '99999';
     container.style.left = openStatus ? '5px' : `-${tableWidth}px`;
     container.style.gridTemplateColumns = `${tableWidth}px 40px`;
-    container.style.height = window.innerHeight - top - 10 + 'px';
 
     const openBtn = document.createElement('div');
     openBtn.className = 'menu-div menu';
@@ -304,7 +303,7 @@ class CreateYoutubeTable {
 
   getTableBounding() {
     let top = 250;
-    let tableWidth = 300;
+    let tableWidth = 400;
     let className = '';
 
     switch (this.bookType) {
@@ -320,9 +319,11 @@ class CreateYoutubeTable {
 
     if (Object.keys(mainColumn).length !== 0) {
       const bound = mainColumn[0].getBoundingClientRect();
-      top = bound.top;
+      top = window.innerHeight / 3;
       tableWidth = bound.left - 10;
     }
+
+    tableWidth = tableWidth < 400 ? 400 : tableWidth;
 
     return {
       top, tableWidth
