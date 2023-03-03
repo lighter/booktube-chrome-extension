@@ -4,7 +4,7 @@ function saveData() {
     youtubeKey: youtubeKey,
   }, () => {
     let status = document.getElementById('status');
-    status.textContent = 'Options saved.';
+    status.textContent = '儲存成功';
     setTimeout(function() {
       status.textContent = '';
     }, 750);

@@ -1,16 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Title</title>
-</head>
-<body>
+    <link rel="stylesheet" href="css/options.css" />
+  </head>
+  <body class="min-h-full">
+    <nav class="bg-indigo-600">
+      <div class="mx-auto max-w-7xl px-4">
+        <div class="flex h-16 items-center justify-between">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 text-white">
+              <span>設定</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
 
-<p>Youtube API Key</p>
-<input type="text" id="youtube-key">
-<button id="save">Save</button>
-<div id="status"></div>
+    <main class="mx-auto max-w-7xl">
+      <div class="py-6">
+        <form action="#" class="mx-auto mt-8 max-w-sm space-y-6">
+          <div class="-space-y-px rounded-md shadow-sm">
+            <div>
+              <label for="youtube-key">Youtube API Key</label>
+              <input
+                type="text"
+                id="youtube-key"
+                class="focus relative block w-full rounded-md border-0 p-1.5 text-gray-900 ring-1 ring-inset ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-indigo-600"
+              />
+            </div>
+          </div>
+          <div>
+            <button
+              id="save"
+              class="group relative flex w-full justify-center rounded-md bg-indigo-600 py-2 px-3 text-sm font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              儲存
+            </button>
+          </div>
+          <div id="status"></div>
+        </form>
+      </div>
+    </main>
 
-<script src="options.js" type="module"></script>
-</body>
+    <script src="options.js" type="module"></script>
+  </body>
 </html>

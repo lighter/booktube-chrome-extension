@@ -1,0 +1,19 @@
+{
+  "name": "my-chrome-extension",
+  "version": "1.0.0",
+  "description": "",
+  "main": "tailwind.config.js",
+  "scripts": {
+    "tailwind": "npx tailwindcss -i ./options/options.css -o ./options/css/options.css --watch",
+    "prettier": "npx prettier --write ./options/*.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lighter/my-chrome-extension.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier-plugin-tailwindcss": "^0.2.3"
+  }
+}

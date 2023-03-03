@@ -36,7 +36,7 @@
 }
 
 .yt-table tbody tr:nth-child(odd) {
-    background-color: #D1E69A;
+    background-color: white;
 }
 .yt-table tfoot td {
     font-size: 15px;
@@ -45,6 +45,7 @@
 
 .yt-table tbody td {
     padding: 5px;
+    border: 1px dashed #EAEAEA;
 }
 .yt-image, .yt-iframe, .play-yt, .stop-yt, .material-symbols-outlined {
     display: none !important;
