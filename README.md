@@ -5,6 +5,12 @@
 在瀏覽博客來,kobo時，會去 youtube 上搜尋該書籍的相關影片，可以直接點選瀏覽。
 這個 extension 初始是嘗試使用詢問 ChatGPT 的結果，組合出來的。
 
+博客來
+![books demo](./img/demo-books.png)
+
+kobo
+![kobo demo](./img/demo-kobo.png)
+
 ## 安裝
 
 下載到您的資料夾後，進入 chrome://extensions/ ，打開開發人員模式，點選載入未封裝項目，選擇資料夾即可。
