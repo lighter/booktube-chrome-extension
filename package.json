@@ -1,5 +1,5 @@
 {
-  "name": "my-chrome-extension",
+  "name": "booktube-chrome-extension",
   "version": "1.0.0",
   "description": "",
   "main": "tailwind.config.js",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lighter/my-chrome-extension.git"
+    "url": "git+https://github.com/lighter/booktube-chrome-extension.git"
   },
   "author": "",
   "license": "MIT",
