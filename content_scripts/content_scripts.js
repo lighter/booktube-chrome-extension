@@ -33,6 +33,7 @@ class ContentScripts {
             this.bindPaginationClick();
             this.bindPlayClick();
             this.bindMenuClick();
+            this.bindCopyIsbnTitleClick();
           });
         }
       }
@@ -122,6 +123,15 @@ class ContentScripts {
     }
   }
 
+  bindCopyIsbnTitleClick() {
+    const btnCopyTitle = document.getElementsByClassName('btn-copy-title');
+    const titleIsbn = this.bookTitle + '|' + this.isbn;
+
+    btnCopyTitle[0].addEventListener('click', () => {
+      copyTextToClipboard(titleIsbn);
+    })
+  }
+
   goToPage(pageToken) {
     this.youtube.ytSearchResult(this.bookTitle, pageToken).then((data) => {
       new CreateYoutubeTable(data, this.bookType, this.bookTitle, this.isbn);
@@ -131,6 +141,7 @@ class ContentScripts {
     })
   }
 }
+
 
 class BookInfo {
   constructor(bookType) {
@@ -277,7 +288,8 @@ class CreateYoutubeTable {
   createFloatingWindow(data, bookTitle, isbn, openStatus = true) {
     const {top: top, tableWidth: tableWidth} = this.getTableBounding();
     const yotubeDiv = document.createElement('div');
-    const title = `<p class="table-title">${bookTitle}, ${isbn}</p>`;
+    const btnCopyTitle = '<button class="btn-copy-title">複製</button>'
+    const title = `<p class="table-title">${bookTitle}|${isbn}  ${btnCopyTitle}</p>`;
     yotubeDiv.className = 'youtube-search-result';
     yotubeDiv.innerHTML = title + this.createTable(data, `${tableWidth}px`);
 
@@ -391,6 +403,13 @@ class CreateYoutubeTable {
   }
 }
 
+function copyTextToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    console.log('Text copied to clipboard successfully.');
+  }).catch(err => {
+    console.error('Failed to copy text: ', err);
+  });
+}
 
 (() => {
   chrome.runtime.sendMessage({message: 'getYoutubeKey'}, function(response) {

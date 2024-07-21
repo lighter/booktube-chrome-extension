@@ -17,6 +17,13 @@ kobo
 還需要自行申請 Youtube API key。詳情申請方式請參考 [Youtube API](https://developers.google.com/youtube/v3/getting-started?hl=zh-tw)。
 申請完 Youtube API 後需到設定頁面填入您的 API Key。
 
+## 版本歷程
+
+- 1.0.1
+  - 增加複製"書名,isbn"到剪貼簿
+- 1.0.0
+  - 初始版本
+
 ## Todo
 - [x] youtube 設定 api key 頁面
 - [x] 表格位置大小依據網頁位置調整
@@ -24,6 +31,8 @@ kobo
 - [x] 內嵌播放
 - [x] 搜尋結果畫面調整
 - [x] youtube 設定 api key 頁面調整
+- [ ] 新增到標記書單
+- [ ] 瀏覽標記書單
 - [ ] 搜尋結果暫存，節省 api 次數
 - [ ] 程式碼調整
 
